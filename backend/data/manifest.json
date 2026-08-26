@@ -1,0 +1,21 @@
+{
+  "BTCUSDT_15m_1704067200000_1767226499999_0c65f8e3": {
+    "dataset_id": "BTCUSDT_15m_1704067200000_1767226499999_0c65f8e3",
+    "symbol": "BTCUSDT",
+    "timeframe": "15m",
+    "start_timestamp": 1704067200000,
+    "end_timestamp": 1767226499999,
+    "candle_count": 70177,
+    "gap_count": 0,
+    "duplicate_count": 0,
+    "invalid_count": 0,
+    "dataset_version": "v1.0",
+    "gaps": [],
+    "sha256_hash": "0c65f8e364cb1b4cc21c821c9a2a5f2977ae189d370d9e4eb7e6da31be850b6c",
+    "quality_status": "WARNING",
+    "download_timestamp": 1787584079869,
+    "source": "BINANCE_PUBLIC_REST",
+    "raw_filepath": "data/raw\\BTCUSDT_15m_1704067200000_1767225600000.json",
+    "processed_filepath": "C:\\Users\\Avita\\Desktop\\Programming\\big bnglore client\\Trading Bot\\backend\\data\\processed\\BTCUSDT_15m_1704067200000_1767226499999_0c65f8e3.json"
+  }
+}

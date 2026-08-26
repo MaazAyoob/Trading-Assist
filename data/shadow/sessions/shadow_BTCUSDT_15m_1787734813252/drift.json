@@ -1,0 +1,98 @@
+{
+  "BASELINE": [
+    {
+      "candidate_id": "BASELINE",
+      "metric_name": "5-Candle Median Return",
+      "historical_validation": -0.00033,
+      "historical_test": -0.00053,
+      "live_observed": 0.0,
+      "drift_delta": 0.00053,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live 5C return is +0.000% vs Untouched Test -0.053% (Delta: +0.053%)."
+    },
+    {
+      "candidate_id": "BASELINE",
+      "metric_name": "5-Candle Positive Rate (%)",
+      "historical_validation": 45.9,
+      "historical_test": 42.9,
+      "live_observed": 0.0,
+      "drift_delta": -42.9,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live 5C win rate is 0.0% vs Untouched Test 42.9% (Delta: -42.9%)."
+    },
+    {
+      "candidate_id": "BASELINE",
+      "metric_name": "Adjacent Bar Clustering (%)",
+      "historical_validation": 69.9,
+      "historical_test": 69.9,
+      "live_observed": 0.0,
+      "drift_delta": -69.9,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live clustering is 0.0% vs Expected 69.9%."
+    }
+  ],
+  "EXP_A2_PULLBACK_VWAP": [
+    {
+      "candidate_id": "EXP_A2_PULLBACK_VWAP",
+      "metric_name": "5-Candle Median Return",
+      "historical_validation": 0.00101,
+      "historical_test": 9e-05,
+      "live_observed": 0.0,
+      "drift_delta": -9e-05,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live 5C return is +0.000% vs Untouched Test +0.009% (Delta: -0.009%)."
+    },
+    {
+      "candidate_id": "EXP_A2_PULLBACK_VWAP",
+      "metric_name": "5-Candle Positive Rate (%)",
+      "historical_validation": 57.8,
+      "historical_test": 50.0,
+      "live_observed": 0.0,
+      "drift_delta": -50.0,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live 5C win rate is 0.0% vs Untouched Test 50.0% (Delta: -50.0%)."
+    },
+    {
+      "candidate_id": "EXP_A2_PULLBACK_VWAP",
+      "metric_name": "Adjacent Bar Clustering (%)",
+      "historical_validation": 21.4,
+      "historical_test": 21.4,
+      "live_observed": 0.0,
+      "drift_delta": -21.4,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live clustering is 0.0% vs Expected 21.4%."
+    }
+  ],
+  "EXP_E2_EXTENSION_VWAP": [
+    {
+      "candidate_id": "EXP_E2_EXTENSION_VWAP",
+      "metric_name": "5-Candle Median Return",
+      "historical_validation": -2e-05,
+      "historical_test": 3e-05,
+      "live_observed": 0.0,
+      "drift_delta": -3e-05,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live 5C return is +0.000% vs Untouched Test +0.003% (Delta: -0.003%)."
+    },
+    {
+      "candidate_id": "EXP_E2_EXTENSION_VWAP",
+      "metric_name": "5-Candle Positive Rate (%)",
+      "historical_validation": 49.6,
+      "historical_test": 48.6,
+      "live_observed": 0.0,
+      "drift_delta": -48.6,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live 5C win rate is 0.0% vs Untouched Test 48.6% (Delta: -48.6%)."
+    },
+    {
+      "candidate_id": "EXP_E2_EXTENSION_VWAP",
+      "metric_name": "Adjacent Bar Clustering (%)",
+      "historical_validation": 43.5,
+      "historical_test": 43.5,
+      "live_observed": 0.0,
+      "drift_delta": -43.5,
+      "drift_status": "INSUFFICIENT_SAMPLE",
+      "details": "Live clustering is 0.0% vs Expected 43.5%."
+    }
+  ]
+}

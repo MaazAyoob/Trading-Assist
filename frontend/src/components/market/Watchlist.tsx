@@ -1,0 +1,107 @@
+import React from 'react';
+import { useMarketStore, formatSymbolPrice, formatPercentage } from '../../stores/marketStore';
+import { Layers, Activity, Sparkles } from 'lucide-react';
+
+interface WatchlistItem {
+  symbol: string;
+  name: string;
+  basePrice: number;
+}
+
+const WATCHLIST: WatchlistItem[] = [
+  { symbol: 'BTCUSDT', name: 'Bitcoin', basePrice: 65000 },
+  { symbol: 'ETHUSDT', name: 'Ethereum', basePrice: 2800 },
+  { symbol: 'SOLUSDT', name: 'Solana', basePrice: 150 },
+  { symbol: 'BNBUSDT', name: 'BNB', basePrice: 580 },
+  { symbol: 'XRPUSDT', name: 'XRP', basePrice: 0.58 },
+];
+
+export const Watchlist: React.FC = () => {
+  const {
+    symbol,
+    setSymbol,
+    ticker,
+    candles,
+    confirmedTradeDecision,
+    confirmedRegime,
+    confirmedSignal,
+    timeframe,
+  } = useMarketStore();
+
+  return (
+    <div className="w-full lg:w-60 bg-slate-900/95 rounded-xl border border-slate-800/90 flex flex-col overflow-hidden select-none shadow-xl font-mono">
+      <div className="h-10 bg-slate-950 px-3 flex items-center justify-between border-b border-slate-800">
+        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200 uppercase tracking-wider">
+          <Layers className="w-3.5 h-3.5 text-indigo-400" />
+          <span>Watchlist</span>
+        </div>
+        <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded border border-slate-800">
+          SPOT
+        </span>
+      </div>
+
+      <div className="p-2 flex flex-col gap-1.5 overflow-y-auto">
+        {WATCHLIST.map((item) => {
+          const isSelected = symbol === item.symbol;
+          const isCurrentActive = isSelected && ticker;
+          const price = isCurrentActive ? ticker.price : (isSelected && candles.length > 0 ? candles[candles.length - 1].close : item.basePrice);
+          const change = isCurrentActive ? ticker.price_change_percent : 0;
+          const isPositive = change >= 0;
+
+          return (
+            <button
+              key={item.symbol}
+              onClick={() => setSymbol(item.symbol)}
+              className={`p-2.5 rounded-lg text-left transition-all border ${
+                isSelected
+                  ? 'bg-slate-950 border-indigo-500/60 shadow-lg shadow-indigo-600/15'
+                  : 'bg-slate-900/40 border-transparent hover:border-slate-800 hover:bg-slate-900'
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-xs font-bold text-slate-100">
+                  {item.symbol.replace('USDT', '')}
+                  <span className="text-[10px] text-slate-500 font-normal">/USDT</span>
+                </span>
+                <span className={`text-[10px] font-mono font-bold px-1 rounded ${
+                  isPositive ? 'text-emerald-400 bg-emerald-500/10' : 'text-rose-400 bg-rose-500/10'
+                }`}>
+                  {formatPercentage(change)}
+                </span>
+              </div>
+
+              <div className="flex items-center justify-between mt-1">
+                <span className="text-[10px] text-slate-400 font-sans">{item.name}</span>
+                <span className="font-mono text-xs font-bold text-slate-200">
+                  ${formatSymbolPrice(item.symbol, price)}
+                </span>
+              </div>
+
+              {/* Analysis Pipeline Status */}
+              <div className="mt-1.5 pt-1.5 border-t border-slate-800/60 flex items-center justify-between text-[9px] font-mono">
+                {isSelected ? (
+                  <div className="flex items-center gap-1.5 w-full justify-between">
+                    <span className="text-emerald-400 font-bold flex items-center gap-1">
+                      <Activity className="w-2.5 h-2.5 animate-pulse" />
+                      {confirmedTradeDecision ? confirmedTradeDecision.decision : 'ANALYZED'}
+                    </span>
+                    <span className="text-slate-400 text-[8px] bg-slate-900 px-1 rounded border border-slate-800">
+                      {timeframe}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-slate-500 font-normal">
+                      NOT ANALYZED
+                    </span>
+                    <span className="text-[8px] text-slate-600">--</span>
+                  </div>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+};

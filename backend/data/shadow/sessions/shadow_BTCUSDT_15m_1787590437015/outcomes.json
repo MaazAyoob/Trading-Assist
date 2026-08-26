@@ -1,0 +1,342 @@
+[
+  {
+    "signal_id": "SHADOW_BASELINE_1767190499999",
+    "candidate_id": "BASELINE",
+    "horizon": 1,
+    "outcome": {
+      "horizon": 1,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767191399999,
+      "target_close_price": 88950.01,
+      "raw_analytical_return": -0.002077,
+      "cost_adjusted_return_5bps": -0.002577,
+      "cost_adjusted_return_10bps": -0.003077,
+      "mfe": 0.0,
+      "mae": -0.002134,
+      "completed_at_timestamp": 1767191399999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767190499999",
+    "candidate_id": "BASELINE",
+    "horizon": 3,
+    "outcome": {
+      "horizon": 3,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767193199999,
+      "target_close_price": 88479.99,
+      "raw_analytical_return": -0.00735,
+      "cost_adjusted_return_5bps": -0.00785,
+      "cost_adjusted_return_10bps": -0.00835,
+      "mfe": 0.0,
+      "mae": -0.009612,
+      "completed_at_timestamp": 1767193199999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767190499999",
+    "candidate_id": "BASELINE",
+    "horizon": 5,
+    "outcome": {
+      "horizon": 5,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767194999999,
+      "target_close_price": 87983.57,
+      "raw_analytical_return": -0.012919,
+      "cost_adjusted_return_5bps": -0.013419,
+      "cost_adjusted_return_10bps": -0.013919,
+      "mfe": 0.0,
+      "mae": -0.013609,
+      "completed_at_timestamp": 1767194999999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767190499999",
+    "candidate_id": "BASELINE",
+    "horizon": 10,
+    "outcome": {
+      "horizon": 10,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767199499999,
+      "target_close_price": 87459.84,
+      "raw_analytical_return": -0.018795,
+      "cost_adjusted_return_5bps": -0.019295,
+      "cost_adjusted_return_10bps": -0.019795,
+      "mfe": 0.0,
+      "mae": -0.019462,
+      "completed_at_timestamp": 1767199499999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767190499999",
+    "candidate_id": "BASELINE",
+    "horizon": 20,
+    "outcome": {
+      "horizon": 20,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767208499999,
+      "target_close_price": 87786.11,
+      "raw_analytical_return": -0.015135,
+      "cost_adjusted_return_5bps": -0.015635,
+      "cost_adjusted_return_10bps": -0.016135,
+      "mfe": 0.0,
+      "mae": -0.019462,
+      "completed_at_timestamp": 1767208499999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767212999999",
+    "candidate_id": "BASELINE",
+    "horizon": 1,
+    "outcome": {
+      "horizon": 1,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767213899999,
+      "target_close_price": 87434.95,
+      "raw_analytical_return": 0.000707,
+      "cost_adjusted_return_5bps": 0.000207,
+      "cost_adjusted_return_10bps": -0.000293,
+      "mfe": 0.002821,
+      "mae": -0.000485,
+      "completed_at_timestamp": 1767213899999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767212999999",
+    "candidate_id": "BASELINE",
+    "horizon": 3,
+    "outcome": {
+      "horizon": 3,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767215699999,
+      "target_close_price": 87751.89,
+      "raw_analytical_return": -0.002915,
+      "cost_adjusted_return_5bps": -0.003415,
+      "cost_adjusted_return_10bps": -0.003915,
+      "mfe": 0.002821,
+      "mae": -0.003365,
+      "completed_at_timestamp": 1767215699999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767212999999",
+    "candidate_id": "BASELINE",
+    "horizon": 5,
+    "outcome": {
+      "horizon": 5,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767217499999,
+      "target_close_price": 87825.62,
+      "raw_analytical_return": -0.003758,
+      "cost_adjusted_return_5bps": -0.004258,
+      "cost_adjusted_return_10bps": -0.004758,
+      "mfe": 0.002821,
+      "mae": -0.004369,
+      "completed_at_timestamp": 1767217499999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767212999999",
+    "candidate_id": "BASELINE",
+    "horizon": 10,
+    "outcome": {
+      "horizon": 10,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767221999999,
+      "target_close_price": 87728.29,
+      "raw_analytical_return": -0.002646,
+      "cost_adjusted_return_5bps": -0.003146,
+      "cost_adjusted_return_10bps": -0.003646,
+      "mfe": 0.002821,
+      "mae": -0.004369,
+      "completed_at_timestamp": 1767221999999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767212999999",
+    "candidate_id": "BASELINE",
+    "horizon": 20,
+    "outcome": {
+      "horizon": 20,
+      "status": "INSUFFICIENT_HORIZON",
+      "target_candle_close_time": null,
+      "target_close_price": null,
+      "raw_analytical_return": null,
+      "cost_adjusted_return_5bps": null,
+      "cost_adjusted_return_10bps": null,
+      "mfe": null,
+      "mae": null,
+      "completed_at_timestamp": null
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767213899999",
+    "candidate_id": "BASELINE",
+    "horizon": 1,
+    "outcome": {
+      "horizon": 1,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767214799999,
+      "target_close_price": 87662.01,
+      "raw_analytical_return": -0.002597,
+      "cost_adjusted_return_5bps": -0.003097,
+      "cost_adjusted_return_10bps": -0.003597,
+      "mfe": 0.000811,
+      "mae": -0.00317,
+      "completed_at_timestamp": 1767214799999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767213899999",
+    "candidate_id": "BASELINE",
+    "horizon": 3,
+    "outcome": {
+      "horizon": 3,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767216599999,
+      "target_close_price": 87759.27,
+      "raw_analytical_return": -0.003709,
+      "cost_adjusted_return_5bps": -0.004209,
+      "cost_adjusted_return_10bps": -0.004709,
+      "mfe": 0.000811,
+      "mae": -0.004075,
+      "completed_at_timestamp": 1767216599999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767213899999",
+    "candidate_id": "BASELINE",
+    "horizon": 5,
+    "outcome": {
+      "horizon": 5,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767218399999,
+      "target_close_price": 87799.97,
+      "raw_analytical_return": -0.004175,
+      "cost_adjusted_return_5bps": -0.004675,
+      "cost_adjusted_return_10bps": -0.005175,
+      "mfe": 0.000811,
+      "mae": -0.005079,
+      "completed_at_timestamp": 1767218399999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767213899999",
+    "candidate_id": "BASELINE",
+    "horizon": 10,
+    "outcome": {
+      "horizon": 10,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767222899999,
+      "target_close_price": 87689.75,
+      "raw_analytical_return": -0.002914,
+      "cost_adjusted_return_5bps": -0.003414,
+      "cost_adjusted_return_10bps": -0.003914,
+      "mfe": 0.000811,
+      "mae": -0.005079,
+      "completed_at_timestamp": 1767222899999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767213899999",
+    "candidate_id": "BASELINE",
+    "horizon": 20,
+    "outcome": {
+      "horizon": 20,
+      "status": "INSUFFICIENT_HORIZON",
+      "target_candle_close_time": null,
+      "target_close_price": null,
+      "raw_analytical_return": null,
+      "cost_adjusted_return_5bps": null,
+      "cost_adjusted_return_10bps": null,
+      "mfe": null,
+      "mae": null,
+      "completed_at_timestamp": null
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767214799999",
+    "candidate_id": "BASELINE",
+    "horizon": 1,
+    "outcome": {
+      "horizon": 1,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767215699999,
+      "target_close_price": 87751.89,
+      "raw_analytical_return": -0.001025,
+      "cost_adjusted_return_5bps": -0.001525,
+      "cost_adjusted_return_10bps": -0.002025,
+      "mfe": 0.0,
+      "mae": -0.001474,
+      "completed_at_timestamp": 1767215699999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767214799999",
+    "candidate_id": "BASELINE",
+    "horizon": 3,
+    "outcome": {
+      "horizon": 3,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767217499999,
+      "target_close_price": 87825.62,
+      "raw_analytical_return": -0.001866,
+      "cost_adjusted_return_5bps": -0.002366,
+      "cost_adjusted_return_10bps": -0.002866,
+      "mfe": 0.0,
+      "mae": -0.002476,
+      "completed_at_timestamp": 1767217499999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767214799999",
+    "candidate_id": "BASELINE",
+    "horizon": 5,
+    "outcome": {
+      "horizon": 5,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767219299999,
+      "target_close_price": 87828.23,
+      "raw_analytical_return": -0.001896,
+      "cost_adjusted_return_5bps": -0.002396,
+      "cost_adjusted_return_10bps": -0.002896,
+      "mfe": 0.0,
+      "mae": -0.002476,
+      "completed_at_timestamp": 1767219299999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767214799999",
+    "candidate_id": "BASELINE",
+    "horizon": 10,
+    "outcome": {
+      "horizon": 10,
+      "status": "COMPLETE",
+      "target_candle_close_time": 1767223799999,
+      "target_close_price": 87675.44,
+      "raw_analytical_return": -0.000153,
+      "cost_adjusted_return_5bps": -0.000653,
+      "cost_adjusted_return_10bps": -0.001153,
+      "mfe": 0.000483,
+      "mae": -0.002476,
+      "completed_at_timestamp": 1767223799999
+    }
+  },
+  {
+    "signal_id": "SHADOW_BASELINE_1767214799999",
+    "candidate_id": "BASELINE",
+    "horizon": 20,
+    "outcome": {
+      "horizon": 20,
+      "status": "INSUFFICIENT_HORIZON",
+      "target_candle_close_time": null,
+      "target_close_price": null,
+      "raw_analytical_return": null,
+      "cost_adjusted_return_5bps": null,
+      "cost_adjusted_return_10bps": null,
+      "mfe": null,
+      "mae": null,
+      "completed_at_timestamp": null
+    }
+  }
+]

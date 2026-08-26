@@ -1,0 +1,67 @@
+{
+  "framework_version": "v1.0.0",
+  "generated_at": "2026-08-26T10:00:00Z",
+  "config_hash": "8f3b49c1e7a502d6",
+  "profiles": [
+    {
+      "profile_id": "SCALP_1M_V1",
+      "display_name": "⚡ SCALP",
+      "description": "Short-duration analytical opportunity detection on 1m bars with 5m/15m causal context.",
+      "profile_type": "SCALP",
+      "primary_timeframe": "1m",
+      "context_timeframes": ["5m", "15m"],
+      "expected_holding_horizon": "1–15 minutes (1–15 bars)",
+      "minimum_data_requirements": 60,
+      "cost_sensitivity_bps": [0, 5, 10, 15],
+      "status": "APPROVED_FOR_ANALYTICAL_USE"
+    },
+    {
+      "profile_id": "INTRADAY_5M_V1",
+      "display_name": "📊 INTRADAY",
+      "description": "Day-trading analytical setups on 5m bars with 15m directional context and 1h macro regime.",
+      "profile_type": "INTRADAY",
+      "primary_timeframe": "5m",
+      "context_timeframes": ["15m", "1h"],
+      "expected_holding_horizon": "15–120 minutes (3–24 bars)",
+      "minimum_data_requirements": 60,
+      "cost_sensitivity_bps": [0, 5, 10],
+      "status": "APPROVED_FOR_ANALYTICAL_USE"
+    },
+    {
+      "profile_id": "TRADING_15M_V1",
+      "display_name": "🎯 TRADING",
+      "description": "Medium-term intraday to multi-hour trading analysis matching the Phase 5/8 baseline environment.",
+      "profile_type": "TRADING",
+      "primary_timeframe": "15m",
+      "context_timeframes": ["1h", "4h"],
+      "expected_holding_horizon": "1–8 hours (4–32 bars)",
+      "minimum_data_requirements": 60,
+      "cost_sensitivity_bps": [0, 5, 10],
+      "status": "APPROVED_FOR_ANALYTICAL_USE"
+    },
+    {
+      "profile_id": "SWING_4H_V1",
+      "display_name": "🌊 SWING",
+      "description": "Multi-day swing analysis emphasizing macro structure, major S&R, and trend persistence.",
+      "profile_type": "SWING",
+      "primary_timeframe": "4h",
+      "context_timeframes": ["1h", "1d"],
+      "expected_holding_horizon": "1–5 days (6–30 bars)",
+      "minimum_data_requirements": 60,
+      "cost_sensitivity_bps": [0, 5, 10],
+      "status": "APPROVED_FOR_ANALYTICAL_USE"
+    },
+    {
+      "profile_id": "POSITION_1D_V1",
+      "display_name": "🏔️ POSITION",
+      "description": "Longer-term analytical positioning based on daily/weekly macro trends and market cycles.",
+      "profile_type": "POSITION",
+      "primary_timeframe": "1d",
+      "context_timeframes": ["4h", "1w"],
+      "expected_holding_horizon": "1–4 weeks (7–28 bars)",
+      "minimum_data_requirements": 60,
+      "cost_sensitivity_bps": [0, 5, 10],
+      "status": "APPROVED_FOR_ANALYTICAL_USE"
+    }
+  ]
+}
