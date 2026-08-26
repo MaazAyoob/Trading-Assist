@@ -1,4 +1,5 @@
 import { WebSocketMessage, ConnectionState } from '../types/market';
+import { getWsBaseUrl } from './api';
 
 export type MessageHandler = (msg: WebSocketMessage) => void;
 export type StatusHandler = (status: ConnectionState, message?: string) => void;
@@ -25,7 +26,7 @@ export class MarketWebSocketClient {
     this.timeframe = timeframe;
     this.onMessageCallback = onMessage;
     this.onStatusCallback = onStatus;
-    this.wsBaseUrl = import.meta.env.VITE_WS_BASE_URL || 'ws://localhost:8000/ws';
+    this.wsBaseUrl = getWsBaseUrl();
   }
 
   public connect() {
@@ -36,6 +37,7 @@ export class MarketWebSocketClient {
     }
 
     const endpoint = `${this.wsBaseUrl}/market/${this.symbol}/${this.timeframe}`;
+    console.log(`[MarketWebSocketClient] Connecting to ${endpoint} (attempt ${this.reconnectAttempts + 1})`);
     this.onStatusCallback(this.reconnectAttempts > 0 ? 'RECONNECTING' : 'OFFLINE', 'Connecting to backend...');
 
     try {

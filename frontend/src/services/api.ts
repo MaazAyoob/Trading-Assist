@@ -22,7 +22,38 @@ import {
 } from '../types/tradeDecision';
 import { ScalpResponse } from '../types/scalp';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
+/**
+ * Automatically resolve and normalize API base URL.
+ * Handles both root URLs (https://trading-assist.onrender.com)
+ * and full v1 endpoints (https://trading-assist.onrender.com/api/v1).
+ */
+export function getApiBaseUrl(): string {
+  const raw = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const clean = raw.replace(/\/+$/, '');
+  return clean.endsWith('/api/v1') ? clean : `${clean}/api/v1`;
+}
+
+/**
+ * Automatically derive WebSocket base URL from environment or VITE_API_BASE_URL.
+ * Converts https:// -> wss:// and http:// -> ws:// seamlessly.
+ */
+export function getWsBaseUrl(): string {
+  if (import.meta.env.VITE_WS_BASE_URL) {
+    return import.meta.env.VITE_WS_BASE_URL.replace(/\/+$/, '');
+  }
+  const rawApi = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  const cleanApi = rawApi.replace(/\/+$/, '').replace(/\/api\/v1$/, '');
+  const wsProtocol = cleanApi.startsWith('https://') ? 'wss://' : 'ws://';
+  const host = cleanApi.replace(/^https?:\/\//, '');
+  return `${wsProtocol}${host}/ws`;
+}
+
+export const API_BASE = getApiBaseUrl();
+
+// Production diagnostics log
+if (typeof window !== 'undefined') {
+  console.log(`[Trading Platform Config] Active API_BASE: ${API_BASE} | Active WS_BASE: ${getWsBaseUrl()}`);
+}
 
 export async function fetchScalpSignal(
   symbol: string = 'BTCUSDT',
