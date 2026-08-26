@@ -19,7 +19,8 @@ async def lifespan(app: FastAPI):
     # Initialize database
     await init_db()
 
-    # Start Binance WebSocket stream manager for default BTC/USDT 15m & 1h
+    # Start Binance WebSocket stream manager for default BTC/USDT 1m, 15m & 1h
+    await ws_manager.start(settings.DEFAULT_SYMBOL, "1m")
     await ws_manager.start(settings.DEFAULT_SYMBOL, "15m")
     await ws_manager.start(settings.DEFAULT_SYMBOL, "1h")
 

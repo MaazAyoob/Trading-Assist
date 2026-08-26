@@ -52,7 +52,6 @@ class DecisionEvaluator:
         latest_candle = candles[-1] if candles else None
 
         open_time = latest_candle.timestamp if latest_candle else 0
-        close_time = latest_candle.close_time if latest_candle else 0
         timeframe = signal.timeframe if signal else "15m"
         symbol = signal.symbol if signal else "BTCUSDT"
 
@@ -64,6 +63,12 @@ class DecisionEvaluator:
             tf_ms = int(timeframe[:-1]) * 60 * 60 * 1000
         elif timeframe.endswith("d"):
             tf_ms = int(timeframe[:-1]) * 24 * 60 * 60 * 1000
+
+        close_time = (
+            latest_candle.close_time
+            if latest_candle and latest_candle.close_time is not None
+            else (open_time + tf_ms - 1 if open_time else 0)
+        )
 
         valid_until = close_time + (config.default_max_valid_candles * tf_ms)
 

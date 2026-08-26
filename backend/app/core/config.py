@@ -26,8 +26,8 @@ class Settings(BaseSettings):
     DEFAULT_SYMBOL: str = "BTCUSDT"
     SUPPORTED_SYMBOLS: List[str] = ["BTCUSDT", "ETHUSDT", "SOLUSDT"]
     SUPPORTED_TIMEFRAMES: List[str] = ["1m", "5m", "15m", "1h", "4h", "1d"]
-    BINANCE_REST_BASE_URL: str = "https://api.binance.com"
-    BINANCE_WS_BASE_URL: str = "wss://stream.binance.com:9443/ws"
+    BINANCE_REST_BASE_URL: str = "https://data-api.binance.vision"
+    BINANCE_WS_BASE_URL: str = "wss://data-stream.binance.vision"
 
     # API Keys (optional for public data)
     BINANCE_API_KEY: str = ""
