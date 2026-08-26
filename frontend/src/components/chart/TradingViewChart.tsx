@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import {
   createChart,
   CandlestickSeries,
@@ -20,7 +20,9 @@ import {
 } from 'lightweight-charts';
 import { useMarketStore } from '../../stores/marketStore';
 import { TimeframeSelector } from './TimeframeSelector';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ZoomIn, ZoomOut, Maximize2, Layers } from 'lucide-react';
+
+const DEFAULT_BAR_SPACING = 6;
 
 export const TradingViewChart: React.FC = () => {
   const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,9 @@ export const TradingViewChart: React.FC = () => {
   const candleSeriesRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volumeSeriesRef = useRef<ISeriesApi<'Histogram'> | null>(null);
   const markersPluginRef = useRef<ISeriesMarkersPluginApi<Time> | null>(null);
+
+  // Track if chart has performed initial fit
+  const hasFittedRef = useRef<boolean>(false);
 
   // Overlay Series Refs
   const ema9SeriesRef = useRef<ISeriesApi<'Line'> | null>(null);
@@ -70,13 +75,71 @@ export const TradingViewChart: React.FC = () => {
     time: string;
   } | null>(null);
 
+  const [barSpacing, setBarSpacing] = useState<number>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = sessionStorage.getItem('trading_chart_bar_spacing');
+      if (saved) {
+        const val = parseFloat(saved);
+        if (!isNaN(val) && val >= 1 && val <= 50) return val;
+      }
+    }
+    return DEFAULT_BAR_SPACING;
+  });
+
+  const [showMobileOverlays, setShowMobileOverlays] = useState<boolean>(false);
+
+  // Candle Zoom Controls
+  const handleZoomIn = useCallback(() => {
+    if (!chartRef.current) return;
+    const newSpacing = Math.min(48, Math.round(barSpacing * 1.3));
+    chartRef.current.timeScale().applyOptions({ barSpacing: newSpacing });
+    setBarSpacing(newSpacing);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('trading_chart_bar_spacing', String(newSpacing));
+    }
+  }, [barSpacing]);
+
+  const handleZoomOut = useCallback(() => {
+    if (!chartRef.current) return;
+    const newSpacing = Math.max(1.5, Math.round(barSpacing * 0.75 * 10) / 10);
+    chartRef.current.timeScale().applyOptions({ barSpacing: newSpacing });
+    setBarSpacing(newSpacing);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('trading_chart_bar_spacing', String(newSpacing));
+    }
+  }, [barSpacing]);
+
+  const handleFitContent = useCallback(() => {
+    if (!chartRef.current) return;
+    chartRef.current.timeScale().fitContent();
+    const defaultSpacing = DEFAULT_BAR_SPACING;
+    chartRef.current.timeScale().applyOptions({ barSpacing: defaultSpacing });
+    setBarSpacing(defaultSpacing);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('trading_chart_bar_spacing', String(defaultSpacing));
+    }
+  }, []);
+
+  const handleSetDensity = useCallback((spacing: number) => {
+    if (!chartRef.current) return;
+    chartRef.current.timeScale().applyOptions({ barSpacing: spacing });
+    setBarSpacing(spacing);
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('trading_chart_bar_spacing', String(spacing));
+    }
+  }, []);
+
   // Initialize TradingView Chart
   useEffect(() => {
     if (!chartContainerRef.current) return;
 
     const container = chartContainerRef.current;
+    const initialWidth = container.clientWidth || 320;
+    const initialHeight = container.clientHeight || 340;
 
     const chart = createChart(container, {
+      width: initialWidth,
+      height: initialHeight,
       layout: {
         background: { type: ColorType.Solid, color: '#0a0d14' },
         textColor: '#94a3b8',
@@ -113,9 +176,20 @@ export const TradingViewChart: React.FC = () => {
         borderColor: '#1f293d',
         timeVisible: true,
         secondsVisible: false,
+        barSpacing: barSpacing,
+        minBarSpacing: 1,
       },
-      handleScroll: true,
-      handleScale: true,
+      handleScroll: {
+        mouseWheel: true,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: false, // Critical: Allows vertical page scrolling on mobile
+      },
+      handleScale: {
+        axisPressedMouseMove: true,
+        mouseWheel: true,
+        pinch: true, // Pinch-to-zoom on touch devices
+      },
     });
 
     // Main Candlestick Series
@@ -188,7 +262,13 @@ export const TradingViewChart: React.FC = () => {
     const resizeObserver = new ResizeObserver((entries) => {
       if (entries.length === 0 || !entries[0].contentRect) return;
       const { width, height } = entries[0].contentRect;
-      chart.applyOptions({ width, height });
+      if (width > 0 && height > 0) {
+        chart.applyOptions({ width, height });
+        if (!hasFittedRef.current && candleSeriesRef.current) {
+          hasFittedRef.current = true;
+          chart.timeScale().fitContent();
+        }
+      }
     });
 
     resizeObserver.observe(container);
@@ -209,6 +289,7 @@ export const TradingViewChart: React.FC = () => {
       bbMiddleSeriesRef.current = null;
       bbLowerSeriesRef.current = null;
       supertrendSeriesRef.current = null;
+      hasFittedRef.current = false;
     };
   }, []);
 
@@ -255,8 +336,10 @@ export const TradingViewChart: React.FC = () => {
       candleSeriesRef.current.setData(uniqueCandles);
       volumeSeriesRef.current.setData(formattedVolume);
 
-      if (chartRef.current) {
+      if (chartRef.current && !hasFittedRef.current) {
+        hasFittedRef.current = true;
         chartRef.current.timeScale().fitContent();
+        chartRef.current.timeScale().applyOptions({ barSpacing });
       }
     }
   }, [candles]);
@@ -541,17 +624,30 @@ export const TradingViewChart: React.FC = () => {
   } : null);
 
   return (
-    <div className="flex-1 flex flex-col bg-surface-card rounded-lg border border-border overflow-hidden relative min-h-[360px] sm:min-h-[480px]">
-      {/* Chart Top Action Bar */}
-      <div className="min-h-[42px] h-auto py-1 px-2 sm:px-3 bg-surface flex items-center justify-between border-b border-border/80 z-10 select-none gap-1.5 sm:gap-2">
-        <div className="flex items-center gap-2 sm:gap-3 overflow-x-auto scrollbar-none max-w-[calc(100%-36px)] py-0.5">
+    <div className="flex-1 flex flex-col bg-surface-card rounded-xl border border-border overflow-hidden relative shadow-xl">
+      {/* Chart Top Action Bar: Timeframe Selector & Overlay Toggles */}
+      <div className="min-h-[44px] h-auto py-1 px-2 sm:px-3 bg-surface flex flex-wrap items-center justify-between border-b border-border/80 z-10 select-none gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none max-w-full py-0.5">
           <TimeframeSelector />
+
+          <button
+            onClick={() => setShowMobileOverlays(!showMobileOverlays)}
+            className={`sm:hidden p-1.5 rounded border transition flex items-center gap-1 text-[11px] font-mono shrink-0 ${
+              showMobileOverlays
+                ? 'bg-indigo-600 text-white border-indigo-500'
+                : 'bg-surface-elevated/60 border-border-subtle text-text-muted hover:text-text-primary'
+            }`}
+            title="Toggle Technical Overlays"
+          >
+            <Layers className="w-3.5 h-3.5" />
+            <span>Overlays</span>
+          </button>
           
-          {/* Interactive Overlay Toggles */}
-          <div className="flex items-center gap-1 text-[10px] sm:text-[11px] font-mono shrink-0">
+          {/* Interactive Overlay Toggles — Always visible on sm+, expandable on mobile */}
+          <div className={`${showMobileOverlays ? 'flex' : 'hidden sm:flex'} items-center gap-1 text-[10px] sm:text-[11px] font-mono shrink-0 overflow-x-auto scrollbar-none`}>
             <button
               onClick={() => toggleOverlay('ema9')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.ema9
                   ? 'bg-accent-cyan/20 border-accent-cyan text-accent-cyan font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -562,7 +658,7 @@ export const TradingViewChart: React.FC = () => {
 
             <button
               onClick={() => toggleOverlay('ema21')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.ema21
                   ? 'bg-accent-gold/20 border-accent-gold text-accent-gold font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -573,7 +669,7 @@ export const TradingViewChart: React.FC = () => {
 
             <button
               onClick={() => toggleOverlay('vwap')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.vwap
                   ? 'bg-amber-500/20 border-amber-400 text-amber-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -584,7 +680,7 @@ export const TradingViewChart: React.FC = () => {
 
             <button
               onClick={() => toggleOverlay('bollinger')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.bollinger
                   ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -595,7 +691,7 @@ export const TradingViewChart: React.FC = () => {
 
             <button
               onClick={() => toggleOverlay('supertrend')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.supertrend
                   ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -609,7 +705,7 @@ export const TradingViewChart: React.FC = () => {
             {/* Structure Overlays */}
             <button
               onClick={() => toggleOverlay('swings')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.swings
                   ? 'bg-purple-500/20 border-purple-400 text-purple-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -620,7 +716,7 @@ export const TradingViewChart: React.FC = () => {
 
             <button
               onClick={() => toggleOverlay('zones')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.zones
                   ? 'bg-rose-500/20 border-rose-400 text-rose-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -634,7 +730,7 @@ export const TradingViewChart: React.FC = () => {
             {/* Signal Markers Toggle */}
             <button
               onClick={() => toggleOverlay('signalMarkers')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.signalMarkers
                   ? 'bg-purple-500/20 border-purple-400 text-purple-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -646,7 +742,7 @@ export const TradingViewChart: React.FC = () => {
             {/* Phase 10: Trade Plan SL/TP Toggle */}
             <button
               onClick={() => toggleOverlay('tradePlan')}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 chartOverlays.tradePlan
                   ? 'bg-indigo-600/30 border-indigo-400 text-indigo-200 font-bold shadow-lg shadow-indigo-500/20'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
@@ -660,75 +756,161 @@ export const TradingViewChart: React.FC = () => {
             {/* Clean Chart Mode Toggle */}
             <button
               onClick={toggleCleanChart}
-              className={`px-1.5 sm:px-2 py-0.5 rounded border transition shrink-0 ${
+              className={`px-2 py-1 rounded border transition shrink-0 ${
                 cleanChart
                   ? 'bg-cyan-500/20 border-cyan-400 text-cyan-300 font-bold'
                   : 'bg-surface-elevated/40 border-border-subtle text-text-muted hover:text-text-secondary'
               }`}
               title="Hide secondary technical lines to focus on Price & Trade Plan"
             >
-              Clean Chart
+              Clean
             </button>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Reload button */}
+        <div className="flex items-center gap-1.5 shrink-0 ml-auto">
           <button
             onClick={() => loadHistoricalData()}
             disabled={isLoading}
-            title="Reload Market, Indicators & Research Signals"
-            className="p-1 sm:p-1.5 rounded hover:bg-surface-elevated text-text-secondary hover:text-text-primary transition"
+            title="Reload Market, Indicators & Signals"
+            className="p-2 rounded-lg bg-surface-elevated/60 hover:bg-surface-elevated border border-border-subtle text-text-secondary hover:text-text-primary transition min-w-[36px] min-h-[36px] flex items-center justify-center"
           >
-            <RefreshCw className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isLoading ? 'animate-spin text-accent-cyan' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoading ? 'animate-spin text-accent-cyan' : ''}`} />
           </button>
         </div>
       </div>
 
-      {/* OHLCV Legend Bar */}
-      <div className="bg-surface/80 backdrop-blur-sm px-3 py-1.5 border-b border-border/40 flex flex-wrap items-center gap-4 text-[11px] font-mono select-none z-10">
-        <span className="text-text-muted font-bold">{symbol}</span>
-        {displayData ? (
-          <>
-            <div>
-              <span className="text-text-muted">O: </span>
-              <span className="text-text-primary">${displayData.open.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div>
-              <span className="text-text-muted">H: </span>
-              <span className="text-emerald-400">${displayData.high.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div>
-              <span className="text-text-muted">L: </span>
-              <span className="text-rose-400">${displayData.low.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-            </div>
-            <div>
-              <span className="text-text-muted">C: </span>
-              <span className={displayData.close >= displayData.open ? 'text-emerald-400' : 'text-rose-400'}>
-                ${displayData.close.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-              </span>
-            </div>
-            <div className="hidden sm:inline">
-              <span className="text-text-muted">Vol: </span>
-              <span className="text-text-secondary">{displayData.volume.toFixed(2)}</span>
-            </div>
-            <div className="hidden md:inline text-text-muted text-[10px]">
-              UTC: {displayData.time}
-            </div>
-          </>
-        ) : (
-          <span className="text-text-muted">Awaiting stream...</span>
-        )}
+      {/* OHLCV Legend Bar & Visual Candle Zoom Controls */}
+      <div className="bg-surface/90 backdrop-blur-sm px-2.5 sm:px-3 py-1.5 border-b border-border/40 flex flex-wrap items-center justify-between gap-2 text-[11px] font-mono select-none z-10">
+        {/* Left: OHLCV Values */}
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <span className="text-accent-cyan font-black">{symbol}</span>
+          {displayData ? (
+            <>
+              <div>
+                <span className="text-text-muted">O: </span>
+                <span className="text-text-primary">${displayData.open.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div>
+                <span className="text-text-muted">H: </span>
+                <span className="text-emerald-400">${displayData.high.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div>
+                <span className="text-text-muted">L: </span>
+                <span className="text-rose-400">${displayData.low.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+              </div>
+              <div>
+                <span className="text-text-muted">C: </span>
+                <span className={displayData.close >= displayData.open ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+                  ${displayData.close.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+              <div className="hidden xs:inline">
+                <span className="text-text-muted">Vol: </span>
+                <span className="text-text-secondary">{displayData.volume.toFixed(2)}</span>
+              </div>
+            </>
+          ) : (
+            <span className="text-text-muted">Awaiting stream...</span>
+          )}
+        </div>
+
+        {/* Right: Candle Size & Visual Zoom Controls (Toolbar) */}
+        <div className="flex items-center gap-1 shrink-0 ml-auto bg-slate-950/80 p-0.5 rounded-lg border border-slate-800">
+          <span className="text-[9px] text-slate-500 font-bold px-1 hidden md:inline uppercase">Candle Size:</span>
+          
+          <button
+            onClick={handleZoomIn}
+            className="p-1 sm:px-1.5 sm:py-0.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition flex items-center gap-0.5 text-[10px]"
+            title="Zoom In / Larger Candles (+)"
+            aria-label="Zoom In Candles"
+          >
+            <ZoomIn className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden xs:inline">+</span>
+          </button>
+
+          <button
+            onClick={handleZoomOut}
+            className="p-1 sm:px-1.5 sm:py-0.5 rounded hover:bg-slate-800 text-slate-300 hover:text-white transition flex items-center gap-0.5 text-[10px]"
+            title="Zoom Out / Smaller Candles (-)"
+            aria-label="Zoom Out Candles"
+          >
+            <ZoomOut className="w-3.5 h-3.5 text-indigo-400" />
+            <span className="hidden xs:inline">-</span>
+          </button>
+
+          <button
+            onClick={handleFitContent}
+            className="px-1.5 py-0.5 rounded bg-indigo-950/60 border border-indigo-800/60 text-indigo-300 hover:bg-indigo-900/80 transition flex items-center gap-1 text-[10px] font-bold"
+            title="Reset Zoom / Fit All Candles"
+          >
+            <Maximize2 className="w-3 h-3" />
+            <span>Fit</span>
+          </button>
+
+          {/* Quick Density Presets */}
+          <div className="hidden sm:flex items-center gap-0.5 pl-1 border-l border-slate-800">
+            <button
+              onClick={() => handleSetDensity(3)}
+              className={`px-1.5 py-0.5 rounded text-[9px] font-mono transition ${
+                barSpacing <= 4
+                  ? 'bg-indigo-600 text-white font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Dense Candle Spacing (3px)"
+            >
+              Dense
+            </button>
+            <button
+              onClick={() => handleSetDensity(6)}
+              className={`px-1.5 py-0.5 rounded text-[9px] font-mono transition ${
+                barSpacing > 4 && barSpacing < 10
+                  ? 'bg-indigo-600 text-white font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Standard Candle Spacing (6px)"
+            >
+              Std
+            </button>
+            <button
+              onClick={() => handleSetDensity(14)}
+              className={`px-1.5 py-0.5 rounded text-[9px] font-mono transition ${
+                barSpacing >= 10
+                  ? 'bg-indigo-600 text-white font-bold'
+                  : 'text-slate-400 hover:text-slate-200'
+              }`}
+              title="Wide Candle Spacing (14px)"
+            >
+              Wide
+            </button>
+          </div>
+        </div>
       </div>
 
-      {/* Chart Canvas */}
-      <div className="flex-1 w-full h-full relative">
+      {/* Chart Canvas: Explicit Responsive Heights (320px on phones, 420px on tablet, 520px on desktop) */}
+      <div className="w-full h-[320px] sm:h-[420px] lg:h-[520px] min-h-[300px] relative bg-background">
         {isLoading && candles.length === 0 && (
-          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-3">
+          <div className="absolute inset-0 bg-background/85 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-3">
             <div className="w-8 h-8 border-2 border-accent-cyan border-t-transparent rounded-full animate-spin"></div>
-            <span className="text-xs font-mono text-text-secondary">Loading market, indicator, structure, and research signals...</span>
+            <span className="text-xs font-mono text-text-secondary">Loading {symbol} {timeframe} market candles...</span>
           </div>
         )}
-        <div ref={chartContainerRef} className="w-full h-full" />
+
+        {!isLoading && candles.length === 0 && (
+          <div className="absolute inset-0 bg-background z-20 flex flex-col items-center justify-center gap-3 p-4 text-center">
+            <span className="text-xs font-mono text-slate-400">No candle data received for {symbol} ({timeframe}).</span>
+            <button
+              onClick={() => loadHistoricalData()}
+              className="px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-mono text-xs font-bold shadow-lg shadow-indigo-600/30 flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              <span>Retry Load</span>
+            </button>
+          </div>
+        )}
+
+        <div ref={chartContainerRef} className="w-full h-full touch-pan-y" />
       </div>
     </div>
   );

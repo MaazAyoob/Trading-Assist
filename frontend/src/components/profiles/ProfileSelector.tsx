@@ -182,18 +182,18 @@ export const ProfileSelector: React.FC = () => {
       <button
         ref={buttonRef}
         onClick={() => (isOpen ? setIsOpen(false) : openDropdown())}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-indigo-500 text-slate-200 transition shadow-md"
+        className="flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-lg bg-slate-900 border border-slate-700 hover:border-indigo-500 text-slate-200 transition shadow-md min-h-[36px]"
         title="Select Analytical Trading Profile"
       >
-        <div className="flex items-center gap-1.5">
-          <Icon className="w-3.5 h-3.5 text-indigo-400" />
+        <div className="flex items-center gap-1 sm:gap-1.5">
+          <Icon className="w-3.5 h-3.5 text-indigo-400 shrink-0" />
           <span className="text-xs font-bold font-sans">{currentProfile.name}</span>
           <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400 font-mono">
             {currentProfile.tf}
           </span>
         </div>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 ${
+          className={`w-3.5 h-3.5 text-slate-400 transition-transform duration-150 shrink-0 ${
             isOpen ? 'rotate-180' : ''
           }`}
         />

@@ -17,7 +17,7 @@ export const TimeframeSelector: React.FC = () => {
             key={tf}
             onClick={() => setTimeframe(tf)}
             disabled={isLoading && isActive}
-            className={`px-2.5 py-1 text-xs font-mono font-medium rounded transition-all ${
+            className={`px-2 sm:px-2.5 py-1 text-xs font-mono font-medium rounded transition-all min-h-[30px] flex items-center justify-center shrink-0 ${
               isActive
                 ? 'bg-accent-cyan text-black font-bold shadow-glow-cyan/40'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-elevated'

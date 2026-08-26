@@ -81,52 +81,52 @@ export const App: React.FC = () => {
         {isScalpMode ? <ScalpHero /> : <TradeDecisionHero />}
 
         {/* Chart Viewport Controls & Layout Actions */}
-        <div className="flex items-center justify-between px-1 text-xs font-mono text-slate-400">
+        <div className="flex flex-wrap items-center justify-between px-1 text-xs font-mono text-slate-400 gap-2">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <button
               onClick={() => setShowWatchlist(!showWatchlist)}
-              className={`px-2 sm:px-2.5 py-1 rounded-md border flex items-center gap-1.5 transition text-[11px] sm:text-xs ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] sm:text-xs min-h-[36px] ${
                 showWatchlist
-                  ? 'bg-slate-900 border-slate-700 text-slate-200'
+                  ? 'bg-slate-900 border-slate-700 text-slate-200 shadow-md'
                   : 'bg-slate-950/60 border-slate-800 text-slate-500 hover:text-slate-300'
               }`}
-              title={showWatchlist ? 'Collapse Watchlist' : 'Expand Watchlist'}
+              title={showWatchlist ? 'Hide Watchlist' : 'Show Watchlist'}
             >
-              {showWatchlist ? <PanelLeftClose className="w-3.5 h-3.5" /> : <PanelLeftOpen className="w-3.5 h-3.5" />}
+              {showWatchlist ? <PanelLeftClose className="w-4 h-4 text-indigo-400" /> : <PanelLeftOpen className="w-4 h-4" />}
               <span>Watchlist</span>
             </button>
 
             <button
               onClick={() => setShowIntelligence(!showIntelligence)}
-              className={`px-2 sm:px-2.5 py-1 rounded-md border flex items-center gap-1.5 transition text-[11px] sm:text-xs ${
+              className={`px-2.5 sm:px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] sm:text-xs min-h-[36px] ${
                 showIntelligence
-                  ? 'bg-slate-900 border-slate-700 text-slate-200'
+                  ? 'bg-slate-900 border-slate-700 text-slate-200 shadow-md'
                   : 'bg-slate-950/60 border-slate-800 text-slate-500 hover:text-slate-300'
               }`}
-              title={showIntelligence ? 'Collapse Intelligence Panel' : 'Expand Intelligence Panel'}
+              title={showIntelligence ? 'Hide Signal Panel' : 'Show Signal Panel'}
             >
-              {showIntelligence ? <PanelRightClose className="w-3.5 h-3.5" /> : <PanelRightOpen className="w-3.5 h-3.5" />}
+              {showIntelligence ? <PanelRightClose className="w-4 h-4 text-indigo-400" /> : <PanelRightOpen className="w-4 h-4" />}
               <span>Signal Panel</span>
             </button>
           </div>
 
           <button
             onClick={toggleFullWidth}
-            className={`px-2 sm:px-2.5 py-1 rounded-md border flex items-center gap-1.5 transition text-[11px] sm:text-xs ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-lg border flex items-center gap-1.5 transition text-[11px] sm:text-xs min-h-[36px] ${
               isFullWidthChart
                 ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-600/30'
                 : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:text-slate-200'
             }`}
           >
-            {isFullWidthChart ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {isFullWidthChart ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             <span className="hidden xs:inline">{isFullWidthChart ? 'Restore Panels' : 'Full Chart Mode'}</span>
             <span className="xs:hidden">{isFullWidthChart ? 'Restore' : 'Full'}</span>
           </button>
         </div>
 
-        {/* Top Split: Watchlist + Main Chart + Signal Panel */}
-        <div className="flex-1 flex flex-col lg:flex-row gap-2.5 sm:gap-3 min-h-[380px]">
-          {/* Left Watchlist */}
+        {/* Top Split: Watchlist + Main Chart + Signal Panel (Stacked on mobile, side-by-side on desktop lg+) */}
+        <div className="flex-1 flex flex-col lg:flex-row gap-2.5 sm:gap-3 w-full max-w-full">
+          {/* Left Watchlist (Horizontal strip on mobile/tablet, vertical sidebar on desktop) */}
           {showWatchlist && (
             <div className="w-full lg:w-auto transition-all shrink-0">
               <Watchlist />
@@ -134,7 +134,9 @@ export const App: React.FC = () => {
           )}
 
           {/* Center Realtime Candlestick Chart */}
-          <TradingViewChart />
+          <div className="flex-1 min-w-0 w-full">
+            <TradingViewChart />
+          </div>
 
           {/* Right AI Signal Panel Shell */}
           {showIntelligence && (

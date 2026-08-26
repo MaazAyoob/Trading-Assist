@@ -23,14 +23,12 @@ export const Watchlist: React.FC = () => {
     ticker,
     candles,
     confirmedTradeDecision,
-    confirmedRegime,
-    confirmedSignal,
     timeframe,
   } = useMarketStore();
 
   return (
     <div className="w-full lg:w-60 bg-slate-900/95 rounded-xl border border-slate-800/90 flex flex-col overflow-hidden select-none shadow-xl font-mono">
-      <div className="h-10 bg-slate-950 px-3 flex items-center justify-between border-b border-slate-800">
+      <div className="h-9 sm:h-10 bg-slate-950 px-3 flex items-center justify-between border-b border-slate-800">
         <div className="flex items-center gap-1.5 text-xs font-bold text-slate-200 uppercase tracking-wider">
           <Layers className="w-3.5 h-3.5 text-indigo-400" />
           <span>Watchlist</span>
@@ -40,7 +38,8 @@ export const Watchlist: React.FC = () => {
         </span>
       </div>
 
-      <div className="p-2 flex flex-col gap-1.5 overflow-y-auto">
+      {/* Mobile: Horizontal scroll strip / Desktop: Vertical list */}
+      <div className="p-1.5 sm:p-2 flex flex-row lg:flex-col gap-1.5 overflow-x-auto lg:overflow-y-auto scrollbar-none max-w-full">
         {WATCHLIST.map((item) => {
           const isSelected = symbol === item.symbol;
           const isCurrentActive = isSelected && ticker;
@@ -52,13 +51,13 @@ export const Watchlist: React.FC = () => {
             <button
               key={item.symbol}
               onClick={() => setSymbol(item.symbol)}
-              className={`p-2.5 rounded-lg text-left transition-all border ${
+              className={`p-2 sm:p-2.5 rounded-lg text-left transition-all border shrink-0 min-w-[140px] sm:min-w-[160px] lg:min-w-0 ${
                 isSelected
                   ? 'bg-slate-950 border-indigo-500/60 shadow-lg shadow-indigo-600/15'
                   : 'bg-slate-900/40 border-transparent hover:border-slate-800 hover:bg-slate-900'
               }`}
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between gap-1">
                 <span className="font-mono text-xs font-bold text-slate-100">
                   {item.symbol.replace('USDT', '')}
                   <span className="text-[10px] text-slate-500 font-normal">/USDT</span>
@@ -70,8 +69,8 @@ export const Watchlist: React.FC = () => {
                 </span>
               </div>
 
-              <div className="flex items-center justify-between mt-1">
-                <span className="text-[10px] text-slate-400 font-sans">{item.name}</span>
+              <div className="flex items-center justify-between mt-1 gap-1">
+                <span className="text-[10px] text-slate-400 font-sans truncate">{item.name}</span>
                 <span className="font-mono text-xs font-bold text-slate-200">
                   ${formatSymbolPrice(item.symbol, price)}
                 </span>
