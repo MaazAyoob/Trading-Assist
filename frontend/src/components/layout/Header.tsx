@@ -129,6 +129,9 @@ export const Header: React.FC = () => {
             <span className="text-xs sm:text-sm font-black tracking-wider text-slate-100 font-mono">
               {symbol}
             </span>
+            <span className="px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 text-[9px] font-mono font-bold border border-indigo-500/30">
+              v1.0.1
+            </span>
             <ProfileSelector />
           </div>
 
