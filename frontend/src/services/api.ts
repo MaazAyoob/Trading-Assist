@@ -21,6 +21,14 @@ import {
   MultiStrategyTradeDecisions,
 } from '../types/tradeDecision';
 import { ScalpResponse } from '../types/scalp';
+import {
+  ScalpV2Response,
+  ScalpV2StatsResponse,
+  ScalpV2HistoryItem,
+  ScalpComparisonResponse,
+  ScalpV2EvaluationReport,
+  ScalpV2DiagnosticReport,
+} from '../types/scalpV2';
 
 /**
  * Automatically resolve and normalize API base URL.
@@ -63,6 +71,76 @@ export async function fetchScalpSignal(
   const response = await fetch(url);
   if (!response.ok) {
     throw new Error(`Failed to fetch scalp signal: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchScalpV2Signal(
+  symbol: string = 'BTCUSDT',
+  includePreview: boolean = true
+): Promise<ScalpV2Response> {
+  const url = `${API_BASE}/scalp-v2?symbol=${encodeURIComponent(symbol)}&include_preview=${includePreview}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch scalp v2 signal: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchScalpV2Stats(
+  symbol: string = 'BTCUSDT'
+): Promise<ScalpV2StatsResponse> {
+  const url = `${API_BASE}/scalp-v2/stats?symbol=${encodeURIComponent(symbol)}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch scalp v2 stats: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchScalpV2History(
+  symbol: string = 'BTCUSDT',
+  limit: number = 50
+): Promise<ScalpV2HistoryItem[]> {
+  const url = `${API_BASE}/scalp-v2/history?symbol=${encodeURIComponent(symbol)}&limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch scalp v2 history: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchScalpComparison(
+  symbol: string = 'BTCUSDT'
+): Promise<ScalpComparisonResponse> {
+  const url = `${API_BASE}/scalp/compare?symbol=${encodeURIComponent(symbol)}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch scalp comparison: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchScalpV2Evaluation(
+  symbol: string = 'BTCUSDT',
+  limit: number = 1000
+): Promise<ScalpV2EvaluationReport> {
+  const url = `${API_BASE}/scalp-v2/evaluation?symbol=${encodeURIComponent(symbol)}&limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch scalp v2 evaluation: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function fetchScalpV2Diagnostics(
+  symbol: string = 'BTCUSDT',
+  limit: number = 1000
+): Promise<ScalpV2DiagnosticReport> {
+  const url = `${API_BASE}/scalp-v2/diagnostics?symbol=${encodeURIComponent(symbol)}&limit=${limit}`;
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch scalp v2 diagnostics: ${response.statusText}`);
   }
   return response.json();
 }

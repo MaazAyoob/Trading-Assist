@@ -22,6 +22,15 @@ import {
   ProfileAnalysisResult,
   ProfileComparisonReport,
 } from '../types/profiles';
+import { ScalpSignal, ScalpDirection } from '../types/scalp';
+import {
+  ScalpV2Signal,
+  ScalpV2StatsResponse,
+  ScalpV2HistoryItem,
+  ScalpComparisonResponse,
+  ScalpV2EvaluationReport,
+  ScalpV2DiagnosticReport,
+} from '../types/scalpV2';
 import {
   fetchHistoricalKlines,
   fetchTicker,
@@ -36,6 +45,13 @@ import {
   fetchTradingProfiles,
   fetchProfileContext,
   fetchProfileComparison,
+  fetchScalpSignal,
+  fetchScalpV2Signal,
+  fetchScalpV2Stats,
+  fetchScalpV2History,
+  fetchScalpComparison,
+  fetchScalpV2Evaluation,
+  fetchScalpV2Diagnostics,
 } from '../services/api';
 
 export function formatSymbolPrice(symbol: string, price: number | null | undefined): string {
@@ -61,6 +77,121 @@ export function getAlignmentScoreTier(score: number | null | undefined): { label
   if (score >= 50) return { label: 'MODERATE', color: 'text-blue-400' };
   if (score >= 35) return { label: 'LOW', color: 'text-amber-400' };
   return { label: 'VERY LOW', color: 'text-slate-400' };
+}
+
+export interface ScalpStrengthTier {
+  label: string;
+  badgeClass: string;
+  dotColor: string;
+  textColor: string;
+  description: string;
+}
+
+export function getScalpStrengthTier(
+  score: number | null | undefined,
+  direction: ScalpDirection | null | undefined
+): ScalpStrengthTier {
+  if (score === null || score === undefined || isNaN(score) || direction === 'NO_TRADE' || !direction) {
+    return {
+      label: 'NO TRADE',
+      badgeClass: 'bg-slate-800 text-slate-400 border border-slate-700',
+      dotColor: 'bg-slate-400',
+      textColor: 'text-slate-400',
+      description: 'System analytical criteria not met for directional entry.',
+    };
+  }
+
+  const isBuy = direction === 'BUY';
+  const isSell = direction === 'SELL';
+
+  if (score >= 80) {
+    return {
+      label: 'VERY STRONG',
+      badgeClass: isBuy
+        ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 shadow-emerald-500/10'
+        : 'bg-rose-500/20 text-rose-400 border border-rose-500/40 shadow-rose-500/10',
+      dotColor: isBuy ? 'bg-emerald-400' : 'bg-rose-400',
+      textColor: isBuy ? 'text-emerald-400' : 'text-rose-400',
+      description: 'Exceptionally high multi-factor alignment across indicators and timeframes.',
+    };
+  }
+  if (score >= 65) {
+    return {
+      label: 'STRONG',
+      badgeClass: isBuy
+        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+        : 'bg-rose-500/15 text-rose-300 border border-rose-500/30',
+      dotColor: isBuy ? 'bg-emerald-400' : 'bg-rose-400',
+      textColor: isBuy ? 'text-emerald-400' : 'text-rose-400',
+      description: 'Multiple analytical factors currently agree with the directional setup.',
+    };
+  }
+  if (score >= 50) {
+    return {
+      label: 'MODERATE',
+      badgeClass: 'bg-amber-500/15 text-amber-300 border border-amber-500/30',
+      dotColor: 'bg-amber-400',
+      textColor: 'text-amber-400',
+      description: 'Moderate analytical alignment; higher likelihood of whipsaw or chop.',
+    };
+  }
+  if (score >= 35) {
+    return {
+      label: 'WEAK',
+      badgeClass: 'bg-orange-500/15 text-orange-400 border border-orange-500/30',
+      dotColor: 'bg-orange-400',
+      textColor: 'text-orange-400',
+      description: 'Conflicting analytical factors with low directional edge.',
+    };
+  }
+  return {
+    label: 'VERY WEAK',
+    badgeClass: 'bg-slate-800 text-slate-400 border border-slate-700',
+    dotColor: 'bg-slate-500',
+    textColor: 'text-slate-400',
+    description: 'Sub-threshold alignment score. Insufficient directional evidence.',
+  };
+}
+
+export interface ScalpActionGuidance {
+  action: 'TAKE TRADE' | 'WAIT FOR CONFIRMATION' | 'AVOID' | 'NO TRADE';
+  badgeClass: string;
+  explanation: string;
+}
+
+export function getScalpActionGuidance(
+  score: number | null | undefined,
+  direction: ScalpDirection | null | undefined
+): ScalpActionGuidance {
+  if (!direction || direction === 'NO_TRADE' || score === null || score === undefined || isNaN(score)) {
+    return {
+      action: 'NO TRADE',
+      badgeClass: 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700',
+      explanation: 'No directional setup currently qualified by the scoring engine.',
+    };
+  }
+
+  if (score >= 65) {
+    return {
+      action: 'TAKE TRADE',
+      badgeClass: direction === 'BUY'
+        ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-600/30 border-emerald-400/50'
+        : 'bg-rose-600 hover:bg-rose-500 text-white shadow-lg shadow-rose-600/30 border-rose-400/50',
+      explanation: 'Directional factors pass primary qualification thresholds.',
+    };
+  }
+  if (score >= 50) {
+    return {
+      action: 'WAIT FOR CONFIRMATION',
+      badgeClass: 'bg-amber-600/90 hover:bg-amber-500 text-white shadow-lg shadow-amber-600/25 border-amber-400/50',
+      explanation: 'Setup is developing. Wait for candle close confirmation before acting.',
+    };
+  }
+  return {
+    action: 'AVOID',
+    badgeClass: 'bg-slate-700 hover:bg-slate-600 text-slate-200 border-slate-600',
+    explanation: 'Alignment score is weak. Unfavorable risk-to-reward conditions.',
+  };
 }
 
 interface MarketStoreState {
@@ -89,6 +220,20 @@ interface MarketStoreState {
   selectedStrategyId: string;
   tradeDecisionHistory: TradePlan[];
 
+  // Phase 13A / Phase 12 Scalp Strategy State
+  selectedScalpStrategy: 'SCALP_V1' | 'SCALP_V2';
+  confirmedScalpSignal: ScalpSignal | null;
+  previewScalpSignal: ScalpSignal | null;
+  confirmedScalpV2Signal: ScalpV2Signal | null;
+  previewScalpV2Signal: ScalpV2Signal | null;
+  scalpV2Stats: ScalpV2StatsResponse | null;
+  scalpV2History: ScalpV2HistoryItem[];
+  scalpComparison: ScalpComparisonResponse | null;
+  scalpV2Evaluation: ScalpV2EvaluationReport | null;
+  scalpV2Diagnostics: ScalpV2DiagnosticReport | null;
+  isScalpLoading: boolean;
+  scalpError: string | null;
+
   // Phase 12 Trading Profiles State
   selectedProfileId: string;
   profilesList: TradingProfileConfig[];
@@ -107,11 +252,21 @@ interface MarketStoreState {
   setTimeframe: (timeframe: Timeframe) => void;
   setProfile: (profileId: string) => void;
   setSelectedStrategyId: (strategyId: string) => void;
+  setSelectedScalpStrategy: (strategy: 'SCALP_V1' | 'SCALP_V2') => void;
   setConnectionState: (state: ConnectionState, message?: string) => void;
   toggleOverlay: (name: keyof ChartOverlaySettings) => void;
   toggleCleanChart: () => void;
   loadHistoricalData: () => Promise<void>;
   loadProfileComparison: () => Promise<void>;
+  loadScalpSignal: () => Promise<void>;
+  loadScalpV2Signal: () => Promise<void>;
+  loadScalpV2Stats: () => Promise<void>;
+  loadScalpV2History: () => Promise<void>;
+  loadScalpComparison: () => Promise<void>;
+  loadScalpV2Evaluation: () => Promise<void>;
+  loadScalpV2Diagnostics: () => Promise<void>;
+  setScalpSignal: (confirmed: ScalpSignal | null, preview: ScalpSignal | null) => void;
+  setScalpV2Signal: (confirmed: ScalpV2Signal | null, preview: ScalpV2Signal | null) => void;
   handleWebSocketMessage: (msg: WebSocketMessage) => void;
 }
 
@@ -140,6 +295,20 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
   multiStrategyDecisions: null,
   selectedStrategyId: 'EXP_A2_PULLBACK_VWAP',
   tradeDecisionHistory: [],
+
+  // Phase 13A & 13B Scalp Strategy State
+  selectedScalpStrategy: 'SCALP_V2',
+  confirmedScalpSignal: null,
+  previewScalpSignal: null,
+  confirmedScalpV2Signal: null,
+  previewScalpV2Signal: null,
+  scalpV2Stats: null,
+  scalpV2History: [],
+  scalpComparison: null,
+  scalpV2Evaluation: null,
+  scalpV2Diagnostics: null,
+  isScalpLoading: false,
+  scalpError: null,
 
   // Phase 12
   selectedProfileId: 'SCALP_1M_V1',
@@ -187,6 +356,8 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         realtimeTradeDecision: null,
         multiStrategyDecisions: null,
         tradeDecisionHistory: [],
+        confirmedScalpSignal: null,
+        previewScalpSignal: null,
         activeProfileResult: null,
         isLoading: true,
       });
@@ -221,6 +392,8 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         realtimeTradeDecision: null,
         multiStrategyDecisions: null,
         tradeDecisionHistory: [],
+        confirmedScalpSignal: null,
+        previewScalpSignal: null,
         activeProfileResult: null,
         isLoading: true,
       });
@@ -255,6 +428,8 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         realtimeTradeDecision: null,
         multiStrategyDecisions: null,
         tradeDecisionHistory: [],
+        confirmedScalpSignal: null,
+        previewScalpSignal: null,
         activeProfileResult: null,
         isLoading: true,
       });
@@ -295,6 +470,112 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
     set((state) => ({ cleanChart: !state.cleanChart }));
   },
 
+  setSelectedScalpStrategy: (strategy: 'SCALP_V1' | 'SCALP_V2') => {
+    if (get().selectedScalpStrategy !== strategy) {
+      set({ selectedScalpStrategy: strategy });
+      get().loadHistoricalData();
+    }
+  },
+
+  setScalpSignal: (confirmed: ScalpSignal | null, preview: ScalpSignal | null) => {
+    set({
+      confirmedScalpSignal: confirmed,
+      previewScalpSignal: preview,
+      isScalpLoading: false,
+      scalpError: null,
+    });
+  },
+
+  setScalpV2Signal: (confirmed: ScalpV2Signal | null, preview: ScalpV2Signal | null) => {
+    set({
+      confirmedScalpV2Signal: confirmed,
+      previewScalpV2Signal: preview,
+      isScalpLoading: false,
+      scalpError: null,
+    });
+  },
+
+  loadScalpSignal: async () => {
+    const { symbol } = get();
+    set({ isScalpLoading: true, scalpError: null });
+    try {
+      const res = await fetchScalpSignal(symbol, true);
+      set({
+        confirmedScalpSignal: res.confirmed_signal,
+        previewScalpSignal: res.preview_signal ?? null,
+        isScalpLoading: false,
+        scalpError: null,
+      });
+    } catch (err: any) {
+      set({ scalpError: err.message || 'Failed to fetch Scalp V1 signal', isScalpLoading: false });
+    }
+  },
+
+  loadScalpV2Signal: async () => {
+    const { symbol } = get();
+    set({ isScalpLoading: true, scalpError: null });
+    try {
+      const res = await fetchScalpV2Signal(symbol, true);
+      set({
+        confirmedScalpV2Signal: res.confirmed_signal,
+        previewScalpV2Signal: res.preview_signal,
+        isScalpLoading: false,
+      });
+    } catch (err: any) {
+      set({ scalpError: err.message || 'Failed to fetch Scalp V2 signal', isScalpLoading: false });
+    }
+  },
+
+  loadScalpV2Stats: async () => {
+    const { symbol } = get();
+    try {
+      const stats = await fetchScalpV2Stats(symbol);
+      set({ scalpV2Stats: stats });
+    } catch (err) {
+      console.error('Error loading Scalp V2 stats:', err);
+    }
+  },
+
+  loadScalpV2History: async () => {
+    const { symbol } = get();
+    try {
+      const history = await fetchScalpV2History(symbol, 50);
+      set({ scalpV2History: history });
+    } catch (err) {
+      console.error('Error loading Scalp V2 history:', err);
+    }
+  },
+
+  loadScalpComparison: async () => {
+    const { symbol } = get();
+    try {
+      const comp = await fetchScalpComparison(symbol);
+      set({ scalpComparison: comp });
+    } catch (err) {
+      console.error('Error loading Scalp comparison:', err);
+    }
+  },
+
+  loadScalpV2Evaluation: async () => {
+    const { symbol } = get();
+    try {
+      const report = await fetchScalpV2Evaluation(symbol, 1000);
+      set({ scalpV2Evaluation: report });
+    } catch (err) {
+      console.error('Error loading Scalp V2 evaluation report:', err);
+    }
+  },
+
+  loadScalpV2Diagnostics: async () => {
+    const { symbol } = get();
+    try {
+      const diag = await fetchScalpV2Diagnostics(symbol, 1000);
+      set({ scalpV2Diagnostics: diag });
+    } catch (err) {
+      console.error('Error loading Scalp V2 diagnostics:', err);
+    }
+  },
+
   loadHistoricalData: async () => {
     const { symbol, timeframe, selectedStrategyId, selectedProfileId } = get();
     const startTime = Date.now();
@@ -313,6 +594,12 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         decHistory,
         profiles,
         profContext,
+        scalpRes,
+        scalpV2Res,
+        scalpV2StatsRes,
+        scalpV2HistoryRes,
+        scalpV2EvalRes,
+        scalpV2DiagRes,
       ] = await Promise.all([
         fetchHistoricalKlines(symbol, timeframe, 300),
         fetchTicker(symbol).catch(() => null),
@@ -326,6 +613,12 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         fetchTradeDecisionHistory(symbol, timeframe, selectedStrategyId, 50).catch(() => []),
         fetchTradingProfiles().catch(() => []),
         fetchProfileContext(selectedProfileId, symbol, selectedStrategyId).catch(() => null),
+        fetchScalpSignal(symbol, true).catch(() => null),
+        fetchScalpV2Signal(symbol, true).catch(() => null),
+        fetchScalpV2Stats(symbol).catch(() => null),
+        fetchScalpV2History(symbol, 50).catch(() => []),
+        fetchScalpV2Evaluation(symbol, 1000).catch(() => null),
+        fetchScalpV2Diagnostics(symbol, 1000).catch(() => null),
       ]);
 
       const latency = Math.max(5, Math.min(250, Date.now() - startTime));
@@ -346,6 +639,14 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         realtimeTradeDecision: decisionRes?.realtime_decision || null,
         multiStrategyDecisions: decisionRes?.multi_strategy_decisions || null,
         tradeDecisionHistory: decHistory || [],
+        confirmedScalpSignal: scalpRes?.confirmed_signal || null,
+        previewScalpSignal: scalpRes?.preview_signal || null,
+        confirmedScalpV2Signal: scalpV2Res?.confirmed_signal || null,
+        previewScalpV2Signal: scalpV2Res?.preview_signal || null,
+        scalpV2Stats: scalpV2StatsRes || null,
+        scalpV2History: scalpV2HistoryRes || [],
+        scalpV2Evaluation: scalpV2EvalRes || null,
+        scalpV2Diagnostics: scalpV2DiagRes || null,
         profilesList: profiles || [],
         activeProfileResult: profContext || null,
         quality: indicatorRes?.quality || null,
@@ -353,6 +654,7 @@ export const useMarketStore = create<MarketStoreState>((set, get) => ({
         latencyMs: latency,
         isStale: false,
         isLoading: false,
+        isScalpLoading: false,
         lastUpdated: Date.now(),
       });
     } catch (err: any) {

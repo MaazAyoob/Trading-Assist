@@ -124,23 +124,23 @@ export const App: React.FC = () => {
           </button>
         </div>
 
-        {/* Top Split: Watchlist + Main Chart + Signal Panel (Stacked on mobile, side-by-side on desktop lg+) */}
+        {/* Top Split: Watchlist + Main Chart + Signal Panel (On mobile: Chart first, then Watchlist, then Signal Panel; on Desktop lg+: Watchlist left, Chart center, Signal Panel right) */}
         <div className="flex-1 flex flex-col lg:flex-row gap-2.5 sm:gap-3 w-full max-w-full">
-          {/* Left Watchlist (Horizontal strip on mobile/tablet, vertical sidebar on desktop) */}
+          {/* Realtime Candlestick Chart */}
+          <div className="flex-1 min-w-0 w-full order-1 lg:order-2">
+            <TradingViewChart />
+          </div>
+
+          {/* Watchlist (Horizontal strip below chart on mobile/tablet, vertical sidebar on desktop) */}
           {showWatchlist && (
-            <div className="w-full lg:w-auto transition-all shrink-0">
+            <div className="w-full lg:w-auto transition-all shrink-0 order-2 lg:order-1">
               <Watchlist />
             </div>
           )}
 
-          {/* Center Realtime Candlestick Chart */}
-          <div className="flex-1 min-w-0 w-full">
-            <TradingViewChart />
-          </div>
-
-          {/* Right AI Signal Panel Shell */}
+          {/* AI Signal Panel Shell */}
           {showIntelligence && (
-            <div className="w-full lg:w-auto transition-all shrink-0">
+            <div className="w-full lg:w-auto transition-all shrink-0 order-3 lg:order-3">
               <SignalPanelShell />
             </div>
           )}

@@ -1,0 +1,12 @@
+{
+  "session_id": "shadow_BTCUSDT_15m_1788009975903",
+  "audited_at_timestamp": 1788009975972,
+  "future_leakage_detected": false,
+  "future_outcome_used_during_signal_generation": false,
+  "candidate_configuration_changed": false,
+  "duplicate_signals_count": 0,
+  "invalid_confirmed_candles_count": 0,
+  "historical_signal_mutations_count": 0,
+  "session_integrity_passed": true,
+  "integrity_notes": []
+}

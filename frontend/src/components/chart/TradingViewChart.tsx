@@ -59,12 +59,18 @@ export const TradingViewChart: React.FC = () => {
     confirmedSignal,
     confirmedTradeDecision,
     realtimeTradeDecision,
+    confirmedScalpSignal,
+    confirmedScalpV2Signal,
+    selectedScalpStrategy,
+    selectedProfileId,
     chartOverlays,
     cleanChart,
     toggleCleanChart,
     toggleOverlay,
     loadHistoricalData,
   } = useMarketStore();
+
+  const isScalpProfile = selectedProfileId === 'SCALP_1M_V1' || timeframe === '1m';
 
   const [hoveredCandle, setHoveredCandle] = useState<{
     open: number;
@@ -476,93 +482,251 @@ export const TradingViewChart: React.FC = () => {
       });
     }
 
-    // Phase 10: Trade Plan Price Lines (Entry Zone, Stop Loss, TP1, TP2, TP3)
-    const activePlan = confirmedTradeDecision || realtimeTradeDecision;
-    if (chartOverlays.tradePlan && activePlan && (activePlan.decision === 'BUY' || activePlan.decision === 'SELL')) {
-      // 1. Entry Level
-      if (activePlan.entry) {
-        const entryLine = candleSeriesRef.current?.createPriceLine({
-          price: activePlan.entry.planned_entry_price,
-          color: '#38bdf8', // Sky blue
-          lineWidth: 2,
-          lineStyle: 0, // Solid
-          axisLabelVisible: true,
-          title: `ENTRY ($${activePlan.entry.planned_entry_price.toLocaleString('en-US')})`,
-        });
-        if (entryLine) priceLinesRef.current.push(entryLine);
+    // Phase 10 & Phase 13A/B: Trade Plan Price Lines (Entry Zone, Stop Loss, TP1, TP2, TP3)
+    const isScalpProfile = selectedProfileId === 'SCALP_1M_V1' || timeframe === '1m';
 
-        // Entry Zone bounds
-        if (activePlan.entry.entry_zone_low !== activePlan.entry.planned_entry_price) {
-          const zoneLowLine = candleSeriesRef.current?.createPriceLine({
-            price: activePlan.entry.entry_zone_low,
-            color: 'rgba(56, 189, 248, 0.4)',
-            lineWidth: 1,
-            lineStyle: 3, // Dotted
-            axisLabelVisible: false,
-            title: 'Zone Low',
-          });
-          if (zoneLowLine) priceLinesRef.current.push(zoneLowLine);
+    if (!cleanChart && chartOverlays.tradePlan) {
+      if (isScalpProfile) {
+        if (selectedScalpStrategy === 'SCALP_V2') {
+          // Scalp V2 Trade Plan
+          if (
+            confirmedScalpV2Signal &&
+            (confirmedScalpV2Signal.direction === 'BUY' || confirmedScalpV2Signal.direction === 'SELL') &&
+            confirmedScalpV2Signal.entry?.planned_entry != null
+          ) {
+            const v2Plan = confirmedScalpV2Signal;
+
+            // 1. Entry Price Line
+            if (v2Plan.entry.planned_entry != null) {
+              const entryLine = candleSeriesRef.current?.createPriceLine({
+                price: v2Plan.entry.planned_entry,
+                color: '#38bdf8', // Sky blue
+                lineWidth: 2,
+                lineStyle: 0, // Solid
+                axisLabelVisible: true,
+                title: `ENTRY ($${v2Plan.entry.planned_entry.toLocaleString('en-US', { minimumFractionDigits: 2 })})`,
+              });
+              if (entryLine) priceLinesRef.current.push(entryLine);
+            }
+
+            // 2. Stop Loss Level
+            if (v2Plan.stop_loss.price != null) {
+              const slLine = candleSeriesRef.current?.createPriceLine({
+                price: v2Plan.stop_loss.price,
+                color: '#f43f5e', // Rose
+                lineWidth: 2,
+                lineStyle: 2, // Dashed
+                axisLabelVisible: true,
+                title: `STOP ($${v2Plan.stop_loss.price.toLocaleString('en-US', { minimumFractionDigits: 2 })})`,
+              });
+              if (slLine) priceLinesRef.current.push(slLine);
+            }
+
+            // 3. Take Profit Levels
+            if (v2Plan.take_profits.tp1 != null) {
+              const tp1Line = candleSeriesRef.current?.createPriceLine({
+                price: v2Plan.take_profits.tp1,
+                color: '#10b981', // Emerald
+                lineWidth: 2,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `TP1: $${v2Plan.take_profits.tp1.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${(v2Plan.take_profits.rr_tp1 ?? 1.0).toFixed(2)}R)`,
+              });
+              if (tp1Line) priceLinesRef.current.push(tp1Line);
+            }
+
+            if (v2Plan.take_profits.tp2 != null) {
+              const tp2Line = candleSeriesRef.current?.createPriceLine({
+                price: v2Plan.take_profits.tp2,
+                color: '#059669', // Medium Emerald
+                lineWidth: 1,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `TP2: $${v2Plan.take_profits.tp2.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${(v2Plan.take_profits.rr_tp2 ?? 1.5).toFixed(2)}R)`,
+              });
+              if (tp2Line) priceLinesRef.current.push(tp2Line);
+            }
+
+            if (v2Plan.take_profits.tp3 != null) {
+              const tp3Line = candleSeriesRef.current?.createPriceLine({
+                price: v2Plan.take_profits.tp3,
+                color: '#047857', // Deep Emerald
+                lineWidth: 1,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `TP3: $${v2Plan.take_profits.tp3.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${(v2Plan.take_profits.rr_tp3 ?? 2.0).toFixed(2)}R)`,
+              });
+              if (tp3Line) priceLinesRef.current.push(tp3Line);
+            }
+          }
+        } else {
+          // Scalp V1 Trade Plan
+          if (
+            confirmedScalpSignal &&
+            (confirmedScalpSignal.direction === 'BUY' || confirmedScalpSignal.direction === 'SELL') &&
+            confirmedScalpSignal.trade_plan?.plan_available
+          ) {
+            const plan = confirmedScalpSignal.trade_plan;
+
+            if (plan.entry_price != null) {
+              const entryLine = candleSeriesRef.current?.createPriceLine({
+                price: plan.entry_price,
+                color: '#38bdf8',
+                lineWidth: 2,
+                lineStyle: 0,
+                axisLabelVisible: true,
+                title: `ENTRY ($${plan.entry_price.toLocaleString('en-US', { minimumFractionDigits: 2 })})`,
+              });
+              if (entryLine) priceLinesRef.current.push(entryLine);
+            }
+
+            if (plan.stop_loss != null) {
+              const slLine = candleSeriesRef.current?.createPriceLine({
+                price: plan.stop_loss,
+                color: '#f43f5e',
+                lineWidth: 2,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `STOP ($${plan.stop_loss.toLocaleString('en-US', { minimumFractionDigits: 2 })})`,
+              });
+              if (slLine) priceLinesRef.current.push(slLine);
+            }
+
+            if (plan.tp1 != null) {
+              const tp1Line = candleSeriesRef.current?.createPriceLine({
+                price: plan.tp1,
+                color: '#10b981',
+                lineWidth: 2,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `TP1: $${plan.tp1.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${(plan.rr_tp1 ?? 1.25).toFixed(2)}R)`,
+              });
+              if (tp1Line) priceLinesRef.current.push(tp1Line);
+            }
+
+            if (plan.tp2 != null) {
+              const tp2Line = candleSeriesRef.current?.createPriceLine({
+                price: plan.tp2,
+                color: '#059669',
+                lineWidth: 1,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `TP2: $${plan.tp2.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${(plan.rr_tp2 ?? 2.00).toFixed(2)}R)`,
+              });
+              if (tp2Line) priceLinesRef.current.push(tp2Line);
+            }
+
+            if (plan.tp3 != null) {
+              const tp3Line = candleSeriesRef.current?.createPriceLine({
+                price: plan.tp3,
+                color: '#047857',
+                lineWidth: 1,
+                lineStyle: 2,
+                axisLabelVisible: true,
+                title: `TP3: $${plan.tp3.toLocaleString('en-US', { minimumFractionDigits: 2 })} (${(plan.rr_tp3 ?? 3.00).toFixed(2)}R)`,
+              });
+              if (tp3Line) priceLinesRef.current.push(tp3Line);
+            }
+          }
         }
-        if (activePlan.entry.entry_zone_high !== activePlan.entry.planned_entry_price) {
-          const zoneHighLine = candleSeriesRef.current?.createPriceLine({
-            price: activePlan.entry.entry_zone_high,
-            color: 'rgba(56, 189, 248, 0.4)',
-            lineWidth: 1,
-            lineStyle: 3, // Dotted
-            axisLabelVisible: false,
-            title: 'Zone High',
-          });
-          if (zoneHighLine) priceLinesRef.current.push(zoneHighLine);
+      } else {
+        // Multi-timeframe Phase 10 Trade Plan
+        const activePlan = confirmedTradeDecision || realtimeTradeDecision;
+        if (activePlan && (activePlan.decision === 'BUY' || activePlan.decision === 'SELL')) {
+          if (activePlan.entry) {
+            const entryLine = candleSeriesRef.current?.createPriceLine({
+              price: activePlan.entry.planned_entry_price,
+              color: '#38bdf8',
+              lineWidth: 2,
+              lineStyle: 0,
+              axisLabelVisible: true,
+              title: `ENTRY ($${activePlan.entry.planned_entry_price.toLocaleString('en-US')})`,
+            });
+            if (entryLine) priceLinesRef.current.push(entryLine);
+
+            if (activePlan.entry.entry_zone_low !== activePlan.entry.planned_entry_price) {
+              const zoneLowLine = candleSeriesRef.current?.createPriceLine({
+                price: activePlan.entry.entry_zone_low,
+                color: 'rgba(56, 189, 248, 0.4)',
+                lineWidth: 1,
+                lineStyle: 3,
+                axisLabelVisible: false,
+                title: 'Zone Low',
+              });
+              if (zoneLowLine) priceLinesRef.current.push(zoneLowLine);
+            }
+
+            if (activePlan.entry.entry_zone_high !== activePlan.entry.planned_entry_price) {
+              const zoneHighLine = candleSeriesRef.current?.createPriceLine({
+                price: activePlan.entry.entry_zone_high,
+                color: 'rgba(56, 189, 248, 0.4)',
+                lineWidth: 1,
+                lineStyle: 3,
+                axisLabelVisible: false,
+                title: 'Zone High',
+              });
+              if (zoneHighLine) priceLinesRef.current.push(zoneHighLine);
+            }
+          }
+
+          if (activePlan.stop_loss) {
+            const slLine = candleSeriesRef.current?.createPriceLine({
+              price: activePlan.stop_loss.price,
+              color: '#f43f5e',
+              lineWidth: 2,
+              lineStyle: 2,
+              axisLabelVisible: true,
+              title: `STOP ($${activePlan.stop_loss.price.toLocaleString('en-US')})`,
+            });
+            if (slLine) priceLinesRef.current.push(slLine);
+          }
+
+          if (activePlan.take_profits) {
+            const tp1Line = candleSeriesRef.current?.createPriceLine({
+              price: activePlan.take_profits.tp1.adjusted_target,
+              color: '#10b981',
+              lineWidth: 2,
+              lineStyle: 2,
+              axisLabelVisible: true,
+              title: `TP1: $${activePlan.take_profits.tp1.adjusted_target.toLocaleString('en-US')} (${activePlan.take_profits.tp1.actual_rr_after_adjustment.toFixed(2)}R)`,
+            });
+            if (tp1Line) priceLinesRef.current.push(tp1Line);
+
+            const tp2Line = candleSeriesRef.current?.createPriceLine({
+              price: activePlan.take_profits.tp2.adjusted_target,
+              color: '#059669',
+              lineWidth: 1,
+              lineStyle: 2,
+              axisLabelVisible: true,
+              title: `TP2: $${activePlan.take_profits.tp2.adjusted_target.toLocaleString('en-US')} (${activePlan.take_profits.tp2.actual_rr_after_adjustment.toFixed(2)}R)`,
+            });
+            if (tp2Line) priceLinesRef.current.push(tp2Line);
+
+            const tp3Line = candleSeriesRef.current?.createPriceLine({
+              price: activePlan.take_profits.tp3.adjusted_target,
+              color: '#047857',
+              lineWidth: 1,
+              lineStyle: 2,
+              axisLabelVisible: true,
+              title: `TP3: $${activePlan.take_profits.tp3.adjusted_target.toLocaleString('en-US')} (${activePlan.take_profits.tp3.actual_rr_after_adjustment.toFixed(2)}R)`,
+            });
+            if (tp3Line) priceLinesRef.current.push(tp3Line);
+          }
         }
-      }
-
-      // 2. Stop Loss Level
-      if (activePlan.stop_loss) {
-        const slLine = candleSeriesRef.current?.createPriceLine({
-          price: activePlan.stop_loss.price,
-          color: '#f43f5e', // Rose
-          lineWidth: 2,
-          lineStyle: 2, // Dashed
-          axisLabelVisible: true,
-          title: `STOP ($${activePlan.stop_loss.price.toLocaleString('en-US')})`,
-        });
-        if (slLine) priceLinesRef.current.push(slLine);
-      }
-
-      // 3. Take Profit Levels
-      if (activePlan.take_profits) {
-        const tp1Line = candleSeriesRef.current?.createPriceLine({
-          price: activePlan.take_profits.tp1.adjusted_target,
-          color: '#10b981', // Emerald
-          lineWidth: 2,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `TP1: $${activePlan.take_profits.tp1.adjusted_target.toLocaleString('en-US')} (${activePlan.take_profits.tp1.actual_rr_after_adjustment.toFixed(2)}R)`,
-        });
-        if (tp1Line) priceLinesRef.current.push(tp1Line);
-
-        const tp2Line = candleSeriesRef.current?.createPriceLine({
-          price: activePlan.take_profits.tp2.adjusted_target,
-          color: '#059669', // Darker Emerald
-          lineWidth: 1,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `TP2: $${activePlan.take_profits.tp2.adjusted_target.toLocaleString('en-US')} (${activePlan.take_profits.tp2.actual_rr_after_adjustment.toFixed(2)}R)`,
-        });
-        if (tp2Line) priceLinesRef.current.push(tp2Line);
-
-        const tp3Line = candleSeriesRef.current?.createPriceLine({
-          price: activePlan.take_profits.tp3.adjusted_target,
-          color: '#047857',
-          lineWidth: 1,
-          lineStyle: 2,
-          axisLabelVisible: true,
-          title: `TP3: $${activePlan.take_profits.tp3.adjusted_target.toLocaleString('en-US')} (${activePlan.take_profits.tp3.actual_rr_after_adjustment.toFixed(2)}R)`,
-        });
-        if (tp3Line) priceLinesRef.current.push(tp3Line);
       }
     }
-  }, [confirmedStructure, confirmedTradeDecision, realtimeTradeDecision, chartOverlays]);
+  }, [
+    confirmedStructure,
+    confirmedTradeDecision,
+    realtimeTradeDecision,
+    confirmedScalpSignal,
+    confirmedScalpV2Signal,
+    selectedScalpStrategy,
+    selectedProfileId,
+    timeframe,
+    chartOverlays,
+    cleanChart,
+  ]);
 
   // Update Signal Markers on Candlestick Series using Markers Plugin
   useEffect(() => {
@@ -908,6 +1072,73 @@ export const TradingViewChart: React.FC = () => {
               <span>Retry Load</span>
             </button>
           </div>
+        )}
+
+        {/* On-Chart Active Trade Plan Legend Banner (V2 or V1) */}
+        {!cleanChart && chartOverlays.tradePlan && isScalpProfile && (
+          selectedScalpStrategy === 'SCALP_V2' ? (
+            confirmedScalpV2Signal &&
+            confirmedScalpV2Signal.direction !== 'NO_TRADE' &&
+            confirmedScalpV2Signal.direction !== 'WATCH' &&
+            confirmedScalpV2Signal.entry?.planned_entry != null ? (
+              <div className="absolute top-2 left-2 z-10 bg-slate-950/90 backdrop-blur-md border border-slate-800/90 rounded-md px-2 py-1 text-[9px] sm:text-[10px] font-mono flex items-center gap-1.5 sm:gap-2 shadow-lg max-w-[95%] overflow-x-auto scrollbar-none pointer-events-none">
+                <span className={`font-bold px-1 py-0.2 rounded text-[8px] sm:text-[9px] ${
+                  confirmedScalpV2Signal.direction === 'BUY'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                }`}>
+                  V2 {confirmedScalpV2Signal.direction} ({confirmedScalpV2Signal.setup_type.replace('_', ' ')})
+                </span>
+                <span className="text-sky-300 shrink-0">
+                  <span className="text-slate-500">ENTRY </span>${confirmedScalpV2Signal.entry.planned_entry.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                </span>
+                {confirmedScalpV2Signal.stop_loss.price != null && (
+                  <span className="text-rose-400 shrink-0">
+                    <span className="text-slate-500">SL </span>${confirmedScalpV2Signal.stop_loss.price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+                {confirmedScalpV2Signal.take_profits.tp1 != null && (
+                  <span className="text-emerald-400 shrink-0">
+                    <span className="text-slate-500">TP1 </span>${confirmedScalpV2Signal.take_profits.tp1.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+                {confirmedScalpV2Signal.take_profits.tp2 != null && (
+                  <span className="text-teal-400 shrink-0 hidden xs:inline">
+                    <span className="text-slate-500">TP2 </span>${confirmedScalpV2Signal.take_profits.tp2.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+              </div>
+            ) : null
+          ) : (
+            confirmedScalpSignal &&
+            confirmedScalpSignal.direction !== 'NO_TRADE' &&
+            confirmedScalpSignal.trade_plan?.plan_available ? (
+              <div className="absolute top-2 left-2 z-10 bg-slate-950/90 backdrop-blur-md border border-slate-800/90 rounded-md px-2 py-1 text-[9px] sm:text-[10px] font-mono flex items-center gap-1.5 sm:gap-2 shadow-lg max-w-[95%] overflow-x-auto scrollbar-none pointer-events-none">
+                <span className={`font-bold px-1 py-0.2 rounded text-[8px] sm:text-[9px] ${
+                  confirmedScalpSignal.direction === 'BUY'
+                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40'
+                    : 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                }`}>
+                  V1 {confirmedScalpSignal.direction} PLAN
+                </span>
+                {confirmedScalpSignal.trade_plan.entry_price != null && (
+                  <span className="text-sky-300 shrink-0">
+                    <span className="text-slate-500">ENTRY </span>${confirmedScalpSignal.trade_plan.entry_price.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+                {confirmedScalpSignal.trade_plan.stop_loss != null && (
+                  <span className="text-rose-400 shrink-0">
+                    <span className="text-slate-500">SL </span>${confirmedScalpSignal.trade_plan.stop_loss.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+                {confirmedScalpSignal.trade_plan.tp1 != null && (
+                  <span className="text-emerald-400 shrink-0">
+                    <span className="text-slate-500">TP1 </span>${confirmedScalpSignal.trade_plan.tp1.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
+                )}
+              </div>
+            ) : null
+          )
         )}
 
         <div ref={chartContainerRef} className="w-full h-full touch-pan-y" />
